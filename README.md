@@ -7,6 +7,7 @@
 ```sh
 npm install
 npm run smoke
+npm run release:check
 node bin/postmaker-skill.js fixtures/release-evidence.json --format json
 node bin/postmaker-skill.js fixtures/release-evidence.json --format markdown
 ```
