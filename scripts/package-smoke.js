@@ -1,4 +1,27 @@
 #!/usr/bin/env node
 import { execFileSync } from "node:child_process";
 
-execFileSync("npm", ["pack", "--dry-run"], { stdio: "inherit" });
+const output = execFileSync("npm", ["pack", "--dry-run", "--json"], {
+  encoding: "utf8"
+});
+const [pack] = JSON.parse(output);
+const files = new Set(pack.files.map((file) => file.path));
+
+const required = [
+  "bin/postmaker-skill.js",
+  "src/index.js",
+  "fixtures/release-evidence.json",
+  "SKILL.md",
+  "README.md",
+  "LICENSE",
+  "SECURITY.md",
+  "CONTRIBUTING.md"
+];
+
+const missing = required.filter((file) => !files.has(file));
+if (missing.length) {
+  console.error(`Package smoke failed; missing files:\n${missing.join("\n")}`);
+  process.exit(1);
+}
+
+console.log(`package smoke ok: ${pack.filename} includes ${pack.files.length} files`);
