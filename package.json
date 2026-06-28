@@ -10,7 +10,9 @@
     "test": "node --test",
     "check": "node scripts/check.js",
     "build": "node scripts/check.js && node --check bin/postmaker-skill.js",
-    "smoke": "node bin/postmaker-skill.js fixtures/release-evidence.json --format markdown"
+    "smoke": "node bin/postmaker-skill.js fixtures/release-evidence.json --format markdown",
+    "package:smoke": "node scripts/package-smoke.js",
+    "release:check": "npm run check && npm test && npm run build && npm run smoke && npm run package:smoke"
   },
   "keywords": [
     "agent-skill",
@@ -20,6 +22,14 @@
     "repo-evidence"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rogerchappel/postmaker-skill.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rogerchappel/postmaker-skill/issues"
+  },
+  "homepage": "https://github.com/rogerchappel/postmaker-skill#readme",
   "engines": {
     "node": ">=18"
   },
@@ -29,6 +39,7 @@
     "fixtures/",
     "src/",
     "SKILL.md",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ]
 }
