@@ -54,3 +54,11 @@ changelog, and contribution guide.
 - Evidence extraction is intentionally explicit; it does not crawl a repository by itself.
 - Claim support uses deterministic substring checks, so reviewers should still inspect high-stakes language.
 - It is optimized for small release notes, demos, and OSS launch material.
+
+## Local Verification
+
+Run the committed test suite before opening a PR:
+
+```sh
+npm test
+```
