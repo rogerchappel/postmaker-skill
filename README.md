@@ -36,6 +36,19 @@ The command prints a Markdown launch pack that can be reviewed before anything i
 
 This package does not post to social networks, send messages, call APIs, or open browser sessions. Treat its output as a draft. An agent should ask for approval before publishing or sending content outside the local workspace.
 
+## Release Verification
+
+Run the full release gate before opening a release PR or publishing a package:
+
+```sh
+npm run release:check
+```
+
+The gate runs syntax checks, fixture-backed tests, the maintained CLI smoke
+command, and a package smoke that verifies the tarball includes the CLI, source,
+skill instructions, fixture evidence, README, license, security policy,
+changelog, and contribution guide.
+
 ## Limitations
 
 - Evidence extraction is intentionally explicit; it does not crawl a repository by itself.
