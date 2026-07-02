@@ -15,6 +15,7 @@ const required = [
   "README.md",
   "LICENSE",
   "SECURITY.md",
+  "CHANGELOG.md",
   "CONTRIBUTING.md"
 ];
 
