@@ -24,9 +24,14 @@ The skill is read-only except for optional local output redirection chosen by th
 
 1. Collect evidence from README, task files, release notes, and verification logs.
 2. Write or update an evidence JSON file.
-3. Run `postmaker-skill <file> --format markdown`.
-4. Review warnings and remove unsupported claims.
-5. Ask for approval before using drafts externally.
+3. Record each verification as an object with a non-empty `command` and
+   `result`. Use `passed`, `success`, or another documented passing result only
+   when the check actually succeeded.
+4. Run `postmaker-skill <file> --format markdown`.
+5. Review warnings and remove unsupported claims. A non-zero exit after draft
+   output means verification failed or was malformed and the draft is not
+   publishable.
+6. Ask for approval before using drafts externally.
 
 ## Example
 
@@ -45,4 +50,6 @@ npm run build
 npm run smoke
 ```
 
-Do not ship a draft while warnings mention missing verification or unsupported claims.
+Do not ship a draft while warnings mention missing, failed, or malformed
+verification or unsupported claims. Only passing checks may be described as
+`Verified with` in generated copy.
