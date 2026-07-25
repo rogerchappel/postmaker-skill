@@ -1,0 +1,14 @@
+{
+  "project": "failed-demo",
+  "audience": "release reviewers",
+  "changes": [
+    "adds a guarded launch draft"
+  ],
+  "verification": [
+    {
+      "command": "npm test",
+      "result": "failed"
+    }
+  ],
+  "sources": []
+}

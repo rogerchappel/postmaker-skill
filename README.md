@@ -19,7 +19,9 @@ Provide JSON with:
 - `project`: public project name.
 - `audience`: intended readers.
 - `changes`: shipped changes or features.
-- `verification`: commands and results.
+- `verification`: command/result objects. Passing results are `pass`, `passed`,
+  `success`, `succeeded`, or `ok` (case-insensitive). Any other result is
+  treated as failed; missing commands or results are malformed.
 - `limitations`: caveats that should stay near the draft.
 - `sources`: paths and short summaries.
 - `requestedClaims`: optional claims the user wants included.
@@ -31,6 +33,13 @@ postmaker-skill fixtures/release-evidence.json --format markdown
 ```
 
 The command prints a Markdown launch pack that can be reviewed before anything is posted externally.
+Only passing checks appear after `Verified with`. Failed or malformed checks
+produce warnings, omit the unqualified verification claim, and make the CLI
+exit non-zero after printing the draft for review.
+
+Use `postmaker-skill --help` to print usage. `--format` requires either `json`
+or `markdown`; a missing or unsupported value exits non-zero with an explicit
+error.
 
 ## Safety Notes
 
@@ -62,3 +71,6 @@ Run the committed test suite before opening a PR:
 ```sh
 npm test
 ```
+
+The fixture-backed suite covers passing, failed, and malformed verification
+evidence as well as CLI help and format argument handling.

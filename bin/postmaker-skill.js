@@ -2,14 +2,14 @@
 import { makeLaunchPack, readEvidence, renderMarkdown } from "../src/index.js";
 
 const args = process.argv.slice(2);
-const file = args.find((arg) => !arg.startsWith("--"));
-const format = readFlag(args, "--format") ?? "json";
+const usage = "Usage: postmaker-skill <evidence.json> [--format json|markdown]";
 
-if (!file || args.includes("--help")) {
-  console.log("Usage: postmaker-skill <evidence.json> [--format json|markdown]");
-  process.exit(file ? 0 : 1);
+if (args.includes("--help")) {
+  console.log(usage);
+  process.exit(0);
 }
 
+const { file, format } = parseArgs(args);
 const evidence = readEvidence(file);
 const pack = makeLaunchPack(evidence);
 
@@ -18,11 +18,49 @@ if (format === "markdown") {
 } else if (format === "json") {
   console.log(JSON.stringify(pack, null, 2));
 } else {
-  console.error(`Unsupported format: ${format}`);
+  fail(`Unsupported format: ${format}`);
+}
+
+if (pack.warnings.some((warning) =>
+  warning.startsWith("Failed verification:") ||
+  warning.startsWith("Malformed verification record"))) {
+  console.error("Verification evidence is not publishable; review the warnings above.");
   process.exit(1);
 }
 
-function readFlag(values, name) {
-  const index = values.indexOf(name);
-  return index >= 0 ? values[index + 1] : undefined;
+function parseArgs(values) {
+  let file;
+  let format = "json";
+
+  for (let index = 0; index < values.length; index += 1) {
+    const value = values[index];
+    if (value === "--format") {
+      const next = values[index + 1];
+      if (!next || next.startsWith("--")) {
+        fail("Missing value for --format");
+      }
+      format = next;
+      index += 1;
+    } else if (value.startsWith("--")) {
+      fail(`Unknown option: ${value}`);
+    } else if (file) {
+      fail(`Unexpected argument: ${value}`);
+    } else {
+      file = value;
+    }
+  }
+
+  if (!file) {
+    fail(usage);
+  }
+  if (!["json", "markdown"].includes(format)) {
+    fail(`Unsupported format: ${format}`);
+  }
+
+  return { file, format };
+}
+
+function fail(message) {
+  console.error(message);
+  process.exit(1);
 }
