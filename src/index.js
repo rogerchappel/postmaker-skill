@@ -28,6 +28,11 @@ export function normalizeEvidence(input) {
 
 export function validateEvidence(evidence) {
   const warnings = [];
+  const verification = Array.isArray(evidence.verification)
+    ? evidence.verification.map((check, index) =>
+      check?.status ? check : normalizeVerification(check, index))
+    : [];
+
   for (const field of REQUIRED_FIELDS) {
     if (field === "changes" || field === "verification") {
       if (!Array.isArray(evidence[field]) || evidence[field].length === 0) {
@@ -38,7 +43,7 @@ export function validateEvidence(evidence) {
     }
   }
 
-  for (const check of evidence.verification) {
+  for (const check of verification) {
     if (check.status === "failed") {
       warnings.push(`Failed verification: ${formatCheck(check)}`);
     } else if (check.status === "malformed") {
@@ -48,7 +53,7 @@ export function validateEvidence(evidence) {
 
   for (const claim of evidence.requestedClaims) {
     const supported = evidence.changes.some((change) => textIncludes(change, claim)) ||
-      evidence.verification.some((check) => check.status === "passed" && textIncludes(check.command, claim)) ||
+      verification.some((check) => check.status === "passed" && textIncludes(check.command, claim)) ||
       evidence.sources.some((source) => textIncludes(source.summary ?? source.path ?? source, claim));
     if (!supported) {
       warnings.push(`Unsupported requested claim: ${claim}`);

@@ -31,6 +31,25 @@ test("flags unsupported requested claims", () => {
   assert.equal(warnings.includes("Unsupported requested claim: SOC2 certified"), true);
 });
 
+test("validates raw verification records through the public API", () => {
+  const warnings = validateEvidence({
+    project: "demo-skill",
+    audience: "release agents",
+    changes: ["writes launch copy"],
+    verification: [
+      { command: "npm test", result: "failed" },
+      { command: "npm run build" }
+    ],
+    sources: [],
+    requestedClaims: []
+  });
+
+  assert.deepEqual(warnings, [
+    "Failed verification: npm test (failed)",
+    "Malformed verification record at index 1: command and result are required"
+  ]);
+});
+
 test("renders markdown with limitations and warnings", () => {
   const markdown = renderMarkdown(makeLaunchPack({
     project: "demo-skill",
