@@ -12,7 +12,9 @@ export function normalizeEvidence(input) {
     project: input.project ?? "",
     audience: input.audience ?? "agent builders",
     changes: Array.isArray(input.changes) ? input.changes : [],
-    verification: Array.isArray(input.verification) ? input.verification : [],
+    verification: Array.isArray(input.verification)
+      ? input.verification.map((check, index) => normalizeVerification(check, index))
+      : [],
     limitations: Array.isArray(input.limitations) ? input.limitations : [],
     sources: Array.isArray(input.sources) ? input.sources : [],
     requestedClaims: Array.isArray(input.requestedClaims) ? input.requestedClaims : []
@@ -36,9 +38,17 @@ export function validateEvidence(evidence) {
     }
   }
 
+  for (const check of evidence.verification) {
+    if (check.status === "failed") {
+      warnings.push(`Failed verification: ${formatCheck(check)}`);
+    } else if (check.status === "malformed") {
+      warnings.push(`Malformed verification record at index ${check.index}: command and result are required`);
+    }
+  }
+
   for (const claim of evidence.requestedClaims) {
     const supported = evidence.changes.some((change) => textIncludes(change, claim)) ||
-      evidence.verification.some((check) => textIncludes(check.command ?? check, claim)) ||
+      evidence.verification.some((check) => check.status === "passed" && textIncludes(check.command, claim)) ||
       evidence.sources.some((source) => textIncludes(source.summary ?? source.path ?? source, claim));
     if (!supported) {
       warnings.push(`Unsupported requested claim: ${claim}`);
@@ -51,7 +61,12 @@ export function validateEvidence(evidence) {
 export function makeLaunchPack(input) {
   const evidence = normalizeEvidence(input);
   const keyChanges = evidence.changes.slice(0, 3);
-  const checks = evidence.verification.map((item) => formatCheck(item));
+  const checks = evidence.verification
+    .filter((item) => item.status === "passed")
+    .map((item) => formatCheck(item));
+  const verificationSummary = checks.length > 0
+    ? `Verified with ${checks.join(", ")}.`
+    : "Verification requires review; no passing checks were supplied.";
   const limitations = evidence.limitations.length > 0 ? evidence.limitations : ["No limitations supplied."];
   const sources = evidence.sources.map((source) => formatSource(source));
 
@@ -59,9 +74,9 @@ export function makeLaunchPack(input) {
     project: evidence.project,
     audience: evidence.audience,
     posts: {
-      launch: `${evidence.project} is ready for ${evidence.audience}: ${sentenceList(keyChanges)}. Verified with ${checks.join(", ")}.`,
-      technical: `Built ${evidence.project} around evidence-first release notes. Core changes: ${bulletInline(keyChanges)}. Verification: ${checks.join("; ")}.`,
-      demoCaption: `Demo ${evidence.project}: ${keyChanges[0] ?? "review the shipped workflow"} -> ${checks[0] ?? "run the smoke check"}.`
+      launch: `${evidence.project} is ready for ${evidence.audience}: ${sentenceList(keyChanges)}. ${verificationSummary}`,
+      technical: `Built ${evidence.project} around evidence-first release notes. Core changes: ${bulletInline(keyChanges)}. ${verificationSummary}`,
+      demoCaption: `Demo ${evidence.project}: ${keyChanges[0] ?? "review the shipped workflow"} -> ${checks[0] ?? "verification requires review"}.`
     },
     checklist: [
       "Confirm every public claim appears in the supplied evidence.",
@@ -120,8 +135,28 @@ function bulletInline(items) {
   return items.length > 0 ? items.join(" | ") : "No changes supplied";
 }
 
+function normalizeVerification(item, index) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) {
+    return { command: "", result: "", status: "malformed", index };
+  }
+
+  const command = typeof item.command === "string" ? item.command.trim() : "";
+  const result = typeof item.result === "string" ? item.result.trim() : "";
+  if (!command || !result) {
+    return { command, result, status: "malformed", index };
+  }
+
+  const normalizedResult = result.toLowerCase();
+  const passed = ["pass", "passed", "success", "succeeded", "ok"].includes(normalizedResult);
+  return {
+    command,
+    result,
+    status: passed ? "passed" : "failed",
+    index
+  };
+}
+
 function formatCheck(item) {
-  if (typeof item === "string") return item;
   const result = item.result ? ` (${item.result})` : "";
   return `${item.command}${result}`;
 }
