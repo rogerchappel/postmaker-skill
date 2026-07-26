@@ -21,6 +21,17 @@ if (format === "markdown") {
   fail(`Unsupported format: ${format}`);
 }
 
+const missingRequired = pack.warnings
+  .filter((warning) => warning.startsWith("Missing required evidence:"))
+  .map((warning) => warning.slice("Missing required evidence:".length).trim());
+
+if (missingRequired.length > 0) {
+  console.error(
+    `Required evidence is not publishable; supply: ${missingRequired.join(", ")}.`
+  );
+  process.exit(1);
+}
+
 if (pack.warnings.some((warning) =>
   warning.startsWith("Failed verification:") ||
   warning.startsWith("Malformed verification record"))) {
