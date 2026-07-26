@@ -1,0 +1,7 @@
+{
+  "project": "verification-free-demo",
+  "audience": "release reviewers",
+  "changes": [
+    "adds a guarded launch draft"
+  ]
+}

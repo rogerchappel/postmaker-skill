@@ -1,0 +1,12 @@
+{
+  "project": "audience-free-demo",
+  "changes": [
+    "adds a guarded launch draft"
+  ],
+  "verification": [
+    {
+      "command": "npm test",
+      "result": "passed"
+    }
+  ]
+}

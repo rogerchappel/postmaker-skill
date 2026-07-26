@@ -88,6 +88,21 @@ test("warns for every malformed fixture verification record", () => {
   ]);
 });
 
+test("fixture-backed API warnings identify each missing required field", () => {
+  for (const field of ["project", "audience", "changes", "verification"]) {
+    const pack = makeLaunchPack(readEvidence(`fixtures/missing-${field}.json`));
+
+    assert.deepEqual(pack.warnings, [`Missing required evidence: ${field}`]);
+  }
+});
+
+test("fully valid fixture has no required-evidence warnings", () => {
+  const pack = makeLaunchPack(readEvidence("fixtures/release-evidence.json"));
+
+  assert.equal(pack.warnings.some((warning) =>
+    warning.startsWith("Missing required evidence:")), false);
+});
+
 test("standalone help exits successfully", () => {
   const result = spawnSync(process.execPath, ["bin/postmaker-skill.js", "--help"], {
     encoding: "utf8"
@@ -146,4 +161,29 @@ test("CLI returns non-success for failed and malformed verification fixtures", (
     assert.match(result.stderr, /Verification evidence is not publishable/);
     assert.doesNotMatch(result.stdout, /Verified with/);
   }
+});
+
+test("CLI renders output but returns non-success for each missing required field", () => {
+  for (const field of ["project", "audience", "changes", "verification"]) {
+    const result = spawnSync(process.execPath, [
+      "bin/postmaker-skill.js",
+      `fixtures/missing-${field}.json`
+    ], { encoding: "utf8" });
+
+    assert.equal(result.status, 1);
+    assert.match(result.stdout, new RegExp(`Missing required evidence: ${field}`));
+    assert.match(result.stderr, /Required evidence is not publishable/);
+  }
+});
+
+test("CLI returns success for fully valid evidence", () => {
+  const result = spawnSync(process.execPath, [
+    "bin/postmaker-skill.js",
+    "fixtures/release-evidence.json"
+  ], { encoding: "utf8" });
+
+  assert.equal(result.status, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(JSON.parse(result.stdout).warnings.some((warning) =>
+    warning.startsWith("Missing required evidence:")), false);
 });
