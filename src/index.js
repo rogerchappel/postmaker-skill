@@ -10,7 +10,7 @@ export function readEvidence(filePath) {
 export function normalizeEvidence(input) {
   const evidence = {
     project: input.project ?? "",
-    audience: input.audience ?? "agent builders",
+    audience: input.audience ?? "",
     changes: Array.isArray(input.changes) ? input.changes : [],
     verification: Array.isArray(input.verification)
       ? input.verification.map((check, index) => normalizeVerification(check, index))

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Return a non-zero CLI status after rendering when required project,
+  audience, changes, or verification evidence is absent.
 - Treat only explicit passing verification results as publishable evidence.
 - Warn and return a non-zero CLI status for failed or malformed verification
   records instead of presenting them as `Verified with`.

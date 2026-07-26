@@ -1,0 +1,10 @@
+{
+  "project": "change-free-demo",
+  "audience": "release reviewers",
+  "verification": [
+    {
+      "command": "npm test",
+      "result": "passed"
+    }
+  ]
+}

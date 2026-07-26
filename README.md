@@ -14,7 +14,7 @@ node bin/postmaker-skill.js fixtures/release-evidence.json --format markdown
 
 ## Evidence Input
 
-Provide JSON with:
+Provide JSON with all four required fields:
 
 - `project`: public project name.
 - `audience`: intended readers.
@@ -33,6 +33,14 @@ postmaker-skill fixtures/release-evidence.json --format markdown
 ```
 
 The command prints a Markdown launch pack that can be reviewed before anything is posted externally.
+
+The CLI always renders that reviewable pack. It exits with status `1` after
+rendering when `project`, `audience`, `changes`, or `verification` is absent or
+empty, or when verification contains failed or malformed records. The
+diagnostic on stderr identifies what must be corrected. A complete record with
+publishable verification exits with status `0`; warnings about optional
+requested claims remain available for human review without changing the exit
+status.
 Only passing checks appear after `Verified with`. Failed or malformed checks
 produce warnings, omit the unqualified verification claim, and make the CLI
 exit non-zero after printing the draft for review.
