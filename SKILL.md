@@ -29,8 +29,8 @@ The skill is read-only except for optional local output redirection chosen by th
    when the check actually succeeded.
 4. Run `postmaker-skill <file> --format markdown`.
 5. Review warnings and remove unsupported claims. A non-zero exit after draft
-   output means verification failed or was malformed and the draft is not
-   publishable.
+   output means required evidence is absent, verification failed, or
+   verification was malformed, so the draft is not publishable.
 6. Ask for approval before using drafts externally.
 
 ## Example
