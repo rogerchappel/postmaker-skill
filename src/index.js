@@ -103,17 +103,22 @@ function requireSources(sources, diagnostics) {
 
 export function validateEvidence(evidence) {
   const warnings = [];
-  const verification = Array.isArray(evidence.verification)
-    ? evidence.verification.map((check, index) =>
-      check?.status ? check : normalizeVerification(check, index))
-    : [];
+  const input = evidence && typeof evidence === "object" && !Array.isArray(evidence)
+    ? evidence
+    : {};
+  const changes = collectionOrEmpty(input, "changes", warnings, { required: true });
+  const rawVerification = collectionOrEmpty(input, "verification", warnings, { required: true });
+  const sources = collectionOrEmpty(input, "sources", warnings);
+  const requestedClaims = collectionOrEmpty(input, "requestedClaims", warnings);
+  const verification = rawVerification.map((check, index) =>
+    check?.status ? check : normalizeVerification(check, index));
 
   for (const field of REQUIRED_FIELDS) {
     if (field === "changes" || field === "verification") {
-      if (!Array.isArray(evidence[field]) || evidence[field].length === 0) {
+      if (Array.isArray(input[field]) && input[field].length === 0) {
         warnings.push(`Missing required evidence: ${field}`);
       }
-    } else if (!evidence[field]) {
+    } else if (!input[field]) {
       warnings.push(`Missing required evidence: ${field}`);
     }
   }
@@ -126,16 +131,26 @@ export function validateEvidence(evidence) {
     }
   }
 
-  for (const claim of evidence.requestedClaims) {
-    const supported = evidence.changes.some((change) => textIncludes(change, claim)) ||
+  for (const claim of requestedClaims) {
+    const supported = changes.some((change) => textIncludes(change, claim)) ||
       verification.some((check) => check.status === "passed" && textIncludes(check.command, claim)) ||
-      evidence.sources.some((source) => textIncludes(source.summary ?? source.path ?? source, claim));
+      sources.some((source) => textIncludes(source?.summary ?? source?.path ?? source, claim));
     if (!supported) {
       warnings.push(`Unsupported requested claim: ${claim}`);
     }
   }
 
   return warnings;
+}
+
+function collectionOrEmpty(input, field, warnings, { required = false } = {}) {
+  if (Array.isArray(input[field])) return input[field];
+  if (input[field] !== undefined) {
+    warnings.push(`Malformed evidence: ${field} must be an array`);
+  } else if (required) {
+    warnings.push(`Missing required evidence: ${field}`);
+  }
+  return [];
 }
 
 export function makeLaunchPack(input) {
