@@ -24,6 +24,11 @@ The skill is read-only except for optional local output redirection chosen by th
 
 1. Collect evidence from README, task files, release notes, and verification logs.
 2. Write or update an evidence JSON file.
+   The root must be an object. `project` and `audience` are non-empty strings;
+   `changes` is a non-empty string array. Optional `limitations` and
+   `requestedClaims` are non-empty string arrays. Optional `sources` contains
+   non-empty strings or objects with a non-empty `path` and optional non-empty
+   `summary`.
 3. Record each verification as an object with a non-empty `command` and
    `result`. Use `passed`, `success`, or another documented passing result only
    when the check actually succeeded.

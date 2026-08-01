@@ -16,15 +16,20 @@ node bin/postmaker-skill.js fixtures/release-evidence.json --format markdown
 
 Provide JSON with all four required fields:
 
-- `project`: public project name.
-- `audience`: intended readers.
-- `changes`: shipped changes or features.
+- `project`: non-empty public project name string.
+- `audience`: non-empty intended-readers string.
+- `changes`: a non-empty array of non-empty shipped-change strings.
 - `verification`: command/result objects. Passing results are `pass`, `passed`,
   `success`, `succeeded`, or `ok` (case-insensitive). Any other result is
   treated as failed; missing commands or results are malformed.
-- `limitations`: caveats that should stay near the draft.
-- `sources`: paths and short summaries.
-- `requestedClaims`: optional claims the user wants included.
+- `limitations`: optional array of non-empty caveat strings.
+- `sources`: optional array of non-empty path strings or objects with a
+  non-empty `path` and optional non-empty `summary`.
+- `requestedClaims`: optional array of non-empty claim strings.
+
+The JSON root must be an object. Wrong field types, empty strings, and invalid
+array entries are rejected before a draft is rendered; the CLI exits non-zero
+with field-specific diagnostics on stderr.
 
 ## Example
 
@@ -34,10 +39,10 @@ postmaker-skill fixtures/release-evidence.json --format markdown
 
 The command prints a Markdown launch pack that can be reviewed before anything is posted externally.
 
-The CLI always renders that reviewable pack. It exits with status `1` after
-rendering when `project`, `audience`, `changes`, or `verification` is absent or
-empty, or when verification contains failed or malformed records. The
-diagnostic on stderr identifies what must be corrected. A complete record with
+The CLI renders that reviewable pack only after the evidence matches the input
+contract. Invalid shapes exit with status `1` and a field-specific diagnostic,
+without emitting a draft. Failed or malformed verification records still
+render a review draft and then exit with status `1`. A complete record with
 publishable verification exits with status `0`; warnings about optional
 requested claims remain available for human review without changing the exit
 status.
