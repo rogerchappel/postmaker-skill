@@ -31,6 +31,13 @@ The JSON root must be an object. Wrong field types, empty strings, and invalid
 array entries are rejected before a draft is rendered; the CLI exits non-zero
 with field-specific diagnostics on stderr.
 
+Library callers can use `validateEvidence(evidence)` to inspect untrusted or
+incomplete evidence without throwing. Omitted optional collections are treated
+as empty, while missing required collections and malformed collection types
+produce deterministic warnings. `normalizeEvidence` and `makeLaunchPack`
+remain strict and throw `EvidenceValidationError` for inputs outside the JSON
+contract.
+
 ## Example
 
 ```sh

@@ -60,6 +60,38 @@ test("validates raw verification records through the public API", () => {
   ]);
 });
 
+test("validates minimal evidence without optional collections", () => {
+  const evidence = {
+    project: "demo-skill",
+    audience: "release agents",
+    changes: ["writes launch copy"],
+    verification: [{ command: "npm test", result: "passed" }]
+  };
+
+  assert.deepEqual(validateEvidence(evidence), []);
+  assert.deepEqual(validateEvidence(evidence), normalizeEvidence(evidence).warnings);
+});
+
+test("direct validation returns deterministic warnings for incomplete collections", () => {
+  assert.deepEqual(validateEvidence({ project: "demo-skill", audience: "release agents" }), [
+    "Missing required evidence: changes",
+    "Missing required evidence: verification"
+  ]);
+  assert.deepEqual(validateEvidence({
+    project: "demo-skill",
+    audience: "release agents",
+    changes: "writes launch copy",
+    verification: {},
+    sources: null,
+    requestedClaims: "fast"
+  }), [
+    "Malformed evidence: changes must be an array",
+    "Malformed evidence: verification must be an array",
+    "Malformed evidence: sources must be an array",
+    "Malformed evidence: requestedClaims must be an array"
+  ]);
+});
+
 test("renders markdown with limitations and warnings", () => {
   const markdown = renderMarkdown(makeLaunchPack({
     project: "demo-skill",
