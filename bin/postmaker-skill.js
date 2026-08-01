@@ -1,5 +1,10 @@
 #!/usr/bin/env node
-import { makeLaunchPack, readEvidence, renderMarkdown } from "../src/index.js";
+import {
+  EvidenceValidationError,
+  makeLaunchPack,
+  readEvidence,
+  renderMarkdown
+} from "../src/index.js";
 
 const args = process.argv.slice(2);
 const usage = "Usage: postmaker-skill <evidence.json> [--format json|markdown]";
@@ -10,8 +15,13 @@ if (args.includes("--help")) {
 }
 
 const { file, format } = parseArgs(args);
-const evidence = readEvidence(file);
-const pack = makeLaunchPack(evidence);
+let pack;
+try {
+  pack = makeLaunchPack(readEvidence(file));
+} catch (error) {
+  if (error instanceof EvidenceValidationError) fail(error.message);
+  throw error;
+}
 
 if (format === "markdown") {
   console.log(renderMarkdown(pack));
