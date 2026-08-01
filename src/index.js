@@ -2,28 +2,103 @@ import fs from "node:fs";
 
 const REQUIRED_FIELDS = ["project", "audience", "changes", "verification"];
 
+export class EvidenceValidationError extends Error {
+  constructor(diagnostics) {
+    super(`Invalid evidence: ${diagnostics.join("; ")}`);
+    this.name = "EvidenceValidationError";
+    this.diagnostics = diagnostics;
+  }
+}
+
 export function readEvidence(filePath) {
   const raw = fs.readFileSync(filePath, "utf8");
   return normalizeEvidence(JSON.parse(raw));
 }
 
 export function normalizeEvidence(input) {
+  assertEvidenceShape(input);
   const evidence = {
-    project: input.project ?? "",
-    audience: input.audience ?? "",
-    changes: Array.isArray(input.changes) ? input.changes : [],
-    verification: Array.isArray(input.verification)
-      ? input.verification.map((check, index) => normalizeVerification(check, index))
-      : [],
-    limitations: Array.isArray(input.limitations) ? input.limitations : [],
-    sources: Array.isArray(input.sources) ? input.sources : [],
-    requestedClaims: Array.isArray(input.requestedClaims) ? input.requestedClaims : []
+    project: input.project.trim(),
+    audience: input.audience.trim(),
+    changes: input.changes.map((change) => change.trim()),
+    verification: input.verification.map((check, index) => normalizeVerification(check, index)),
+    limitations: (input.limitations ?? []).map((limitation) => limitation.trim()),
+    sources: input.sources ?? [],
+    requestedClaims: (input.requestedClaims ?? []).map((claim) => claim.trim())
   };
 
   return {
     ...evidence,
     warnings: validateEvidence(evidence)
   };
+}
+
+function assertEvidenceShape(input) {
+  const diagnostics = [];
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    throw new EvidenceValidationError(["root must be a JSON object"]);
+  }
+
+  requireNonEmptyString(input, "project", diagnostics);
+  requireNonEmptyString(input, "audience", diagnostics);
+  requireStringArray(input, "changes", diagnostics, { required: true });
+  requireArray(input, "verification", diagnostics, { required: true });
+  requireStringArray(input, "limitations", diagnostics);
+  requireStringArray(input, "requestedClaims", diagnostics);
+  requireSources(input.sources, diagnostics);
+
+  if (diagnostics.length > 0) throw new EvidenceValidationError(diagnostics);
+}
+
+function requireNonEmptyString(input, field, diagnostics) {
+  if (typeof input[field] !== "string" || !input[field].trim()) {
+    diagnostics.push(`${field} must be a non-empty string`);
+  }
+}
+
+function requireArray(input, field, diagnostics, { required = false } = {}) {
+  const value = input[field];
+  if (value === undefined && !required) return false;
+  if (!Array.isArray(value)) {
+    diagnostics.push(`${field} must be an array`);
+    return false;
+  }
+  if (required && value.length === 0) diagnostics.push(`${field} must not be empty`);
+  return true;
+}
+
+function requireStringArray(input, field, diagnostics, options) {
+  if (!requireArray(input, field, diagnostics, options)) return;
+  input[field].forEach((value, index) => {
+    if (typeof value !== "string" || !value.trim()) {
+      diagnostics.push(`${field}[${index}] must be a non-empty string`);
+    }
+  });
+}
+
+function requireSources(sources, diagnostics) {
+  if (sources === undefined) return;
+  if (!Array.isArray(sources)) {
+    diagnostics.push("sources must be an array");
+    return;
+  }
+  sources.forEach((source, index) => {
+    if (typeof source === "string") {
+      if (!source.trim()) diagnostics.push(`sources[${index}] must be a non-empty string or source object`);
+      return;
+    }
+    if (!source || typeof source !== "object" || Array.isArray(source)) {
+      diagnostics.push(`sources[${index}] must be a non-empty string or source object`);
+      return;
+    }
+    if (typeof source.path !== "string" || !source.path.trim()) {
+      diagnostics.push(`sources[${index}].path must be a non-empty string`);
+    }
+    if (source.summary !== undefined &&
+      (typeof source.summary !== "string" || !source.summary.trim())) {
+      diagnostics.push(`sources[${index}].summary must be a non-empty string when provided`);
+    }
+  });
 }
 
 export function validateEvidence(evidence) {
