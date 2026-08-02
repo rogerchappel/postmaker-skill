@@ -38,6 +38,14 @@ The skill is read-only except for optional local output redirection chosen by th
    verification was malformed, so the draft is not publishable.
 6. Ask for approval before using drafts externally.
 
+For callers that need to inspect untrusted evidence before normalization,
+`validateEvidence(evidence)` never throws. It returns deterministic,
+field-specific warnings for missing or invalid required values, invalid entries
+in required or optional collections, malformed verification records, failed
+checks, and unsupported requested claims. `normalizeEvidence` and
+`makeLaunchPack` remain strict and throw `EvidenceValidationError` when the
+input does not match the JSON contract.
+
 ## Example
 
 ```sh

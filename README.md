@@ -34,9 +34,12 @@ with field-specific diagnostics on stderr.
 Library callers can use `validateEvidence(evidence)` to inspect untrusted or
 incomplete evidence without throwing. Omitted optional collections are treated
 as empty, while missing required collections and malformed collection types
-produce deterministic warnings. `normalizeEvidence` and `makeLaunchPack`
-remain strict and throw `EvidenceValidationError` for inputs outside the JSON
-contract.
+produce deterministic warnings. It also reports field-specific warnings for
+blank or mistyped `project` and `audience` values, invalid collection entries,
+and malformed verification records. Warning order follows the input contract,
+then verification results, so callers can compare diagnostics deterministically.
+`normalizeEvidence` and `makeLaunchPack` remain strict and throw
+`EvidenceValidationError` for inputs outside the JSON contract.
 
 ## Example
 
@@ -92,5 +95,5 @@ Run the committed test suite before opening a PR:
 npm test
 ```
 
-The fixture-backed suite covers passing, failed, and malformed verification
-evidence as well as CLI help and format argument handling.
+The fixture-backed suite covers valid and invalid direct-validation evidence,
+passing, failed, and malformed verification evidence, and CLI argument handling.
