@@ -92,6 +92,29 @@ test("direct validation returns deterministic warnings for incomplete collection
   ]);
 });
 
+test("fixture-backed direct validation diagnoses every invalid field without throwing", () => {
+  const evidence = JSON.parse(fs.readFileSync("fixtures/direct-validation-invalid.json", "utf8"));
+
+  assert.deepEqual(validateEvidence(evidence), [
+    "Malformed evidence: project must be a non-empty string",
+    "Malformed evidence: audience must be a non-empty string",
+    "Malformed evidence: changes[1] must be a non-empty string",
+    "Malformed evidence: changes[2] must be a non-empty string",
+    "Malformed evidence: limitations[0] must be a non-empty string",
+    "Malformed evidence: requestedClaims[0] must be a non-empty string",
+    "Malformed evidence: sources[0].path must be a non-empty string",
+    "Malformed evidence: sources[1].summary must be a non-empty string when provided",
+    "Malformed verification record at index 1: command and result are required",
+    "Malformed verification record at index 2: command and result are required"
+  ]);
+});
+
+test("fixture-backed direct validation accepts valid evidence", () => {
+  const evidence = JSON.parse(fs.readFileSync("fixtures/direct-validation-valid.json", "utf8"));
+
+  assert.deepEqual(validateEvidence(evidence), []);
+});
+
 test("renders markdown with limitations and warnings", () => {
   const markdown = renderMarkdown(makeLaunchPack({
     project: "demo-skill",

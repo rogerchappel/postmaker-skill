@@ -1,7 +1,5 @@
 import fs from "node:fs";
 
-const REQUIRED_FIELDS = ["project", "audience", "changes", "verification"];
-
 export class EvidenceValidationError extends Error {
   constructor(diagnostics) {
     super(`Invalid evidence: ${diagnostics.join("; ")}`);
@@ -109,19 +107,22 @@ export function validateEvidence(evidence) {
   const changes = collectionOrEmpty(input, "changes", warnings, { required: true });
   const rawVerification = collectionOrEmpty(input, "verification", warnings, { required: true });
   const sources = collectionOrEmpty(input, "sources", warnings);
+  const limitations = collectionOrEmpty(input, "limitations", warnings);
   const requestedClaims = collectionOrEmpty(input, "requestedClaims", warnings);
-  const verification = rawVerification.map((check, index) =>
-    check?.status ? check : normalizeVerification(check, index));
+  const verification = rawVerification.map((check, index) => normalizeVerification(check, index));
 
-  for (const field of REQUIRED_FIELDS) {
-    if (field === "changes" || field === "verification") {
-      if (Array.isArray(input[field]) && input[field].length === 0) {
-        warnings.push(`Missing required evidence: ${field}`);
-      }
-    } else if (!input[field]) {
+  for (const field of ["project", "audience"]) {
+    if (input[field] === undefined) {
       warnings.push(`Missing required evidence: ${field}`);
+    } else if (typeof input[field] !== "string" || !input[field].trim()) {
+      warnings.push(`Malformed evidence: ${field} must be a non-empty string`);
     }
   }
+
+  validateStringEntries(changes, "changes", warnings);
+  validateStringEntries(limitations, "limitations", warnings);
+  validateStringEntries(requestedClaims, "requestedClaims", warnings);
+  validateSourceEntries(sources, warnings);
 
   for (const check of verification) {
     if (check.status === "failed") {
@@ -131,7 +132,8 @@ export function validateEvidence(evidence) {
     }
   }
 
-  for (const claim of requestedClaims) {
+  for (const claim of requestedClaims.filter((value) =>
+    typeof value === "string" && value.trim())) {
     const supported = changes.some((change) => textIncludes(change, claim)) ||
       verification.some((check) => check.status === "passed" && textIncludes(check.command, claim)) ||
       sources.some((source) => textIncludes(source?.summary ?? source?.path ?? source, claim));
@@ -143,8 +145,27 @@ export function validateEvidence(evidence) {
   return warnings;
 }
 
+function validateStringEntries(values, field, warnings) {
+  values.forEach((value, index) => {
+    if (typeof value !== "string" || !value.trim()) {
+      warnings.push(`Malformed evidence: ${field}[${index}] must be a non-empty string`);
+    }
+  });
+}
+
+function validateSourceEntries(sources, warnings) {
+  const diagnostics = [];
+  requireSources(sources, diagnostics);
+  warnings.push(...diagnostics.map((diagnostic) => `Malformed evidence: ${diagnostic}`));
+}
+
 function collectionOrEmpty(input, field, warnings, { required = false } = {}) {
-  if (Array.isArray(input[field])) return input[field];
+  if (Array.isArray(input[field])) {
+    if (required && input[field].length === 0) {
+      warnings.push(`Missing required evidence: ${field}`);
+    }
+    return input[field];
+  }
   if (input[field] !== undefined) {
     warnings.push(`Malformed evidence: ${field} must be an array`);
   } else if (required) {
