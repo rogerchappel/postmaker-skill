@@ -1,0 +1,16 @@
+{
+  "project": "   ",
+  "audience": 42,
+  "changes": ["documents diagnostics", 7, ""],
+  "verification": [
+    { "command": "npm test", "result": "passed" },
+    { "command": "npm run build" },
+    "npm run smoke"
+  ],
+  "limitations": [null],
+  "sources": [
+    { "path": " " },
+    { "path": "README.md", "summary": 12 }
+  ],
+  "requestedClaims": [false]
+}

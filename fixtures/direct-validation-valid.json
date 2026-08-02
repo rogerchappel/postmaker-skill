@@ -1,0 +1,13 @@
+{
+  "project": "postmaker-skill",
+  "audience": "release agents",
+  "changes": ["adds deterministic direct-validation diagnostics"],
+  "verification": [
+    { "command": "npm run release:check", "result": "passed" }
+  ],
+  "limitations": ["draft output requires human review"],
+  "sources": [
+    { "path": "README.md", "summary": "documents direct validation" }
+  ],
+  "requestedClaims": ["deterministic direct-validation diagnostics"]
+}
