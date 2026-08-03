@@ -60,6 +60,10 @@ Only passing checks appear after `Verified with`. Failed or malformed checks
 produce warnings, omit the unqualified verification claim, and make the CLI
 exit non-zero after printing the draft for review.
 
+If the evidence file cannot be read or does not contain valid JSON, the CLI
+exits with status `1`, names the affected file on stderr, and emits neither a
+draft nor a Node.js stack trace.
+
 Use `postmaker-skill --help` to print usage. `--format` requires either `json`
 or `markdown`; a missing or unsupported value exits non-zero with an explicit
 error.
@@ -96,4 +100,5 @@ npm test
 ```
 
 The fixture-backed suite covers valid and invalid direct-validation evidence,
-passing, failed, and malformed verification evidence, and CLI argument handling.
+passing, failed, and malformed verification evidence, CLI argument handling,
+and missing-file and invalid-JSON diagnostics.
