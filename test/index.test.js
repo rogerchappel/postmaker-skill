@@ -308,6 +308,34 @@ test("CLI rejects malformed evidence types without a stack trace or draft", (t) 
   });
 });
 
+test("CLI reports an unreadable evidence file without a stack trace or draft", () => {
+  const fixture = path.join(os.tmpdir(), "postmaker-missing-evidence.json");
+  const result = spawnSync(process.execPath, ["bin/postmaker-skill.js", fixture], {
+    encoding: "utf8"
+  });
+
+  assert.equal(result.status, 1);
+  assert.equal(result.stdout, "");
+  assert.match(result.stderr, new RegExp(`Unable to read evidence file: ${fixture}`));
+  assert.doesNotMatch(result.stderr, /\n\s+at /);
+});
+
+test("CLI reports invalid JSON without a stack trace or draft", (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "postmaker-invalid-json-"));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const fixture = path.join(directory, "evidence.json");
+  fs.writeFileSync(fixture, '{"project":');
+
+  const result = spawnSync(process.execPath, ["bin/postmaker-skill.js", fixture], {
+    encoding: "utf8"
+  });
+
+  assert.equal(result.status, 1);
+  assert.equal(result.stdout, "");
+  assert.match(result.stderr, new RegExp(`Invalid JSON in evidence file: ${fixture}`));
+  assert.doesNotMatch(result.stderr, /\n\s+at /);
+});
+
 test("CLI returns success for fully valid evidence", () => {
   const result = spawnSync(process.execPath, [
     "bin/postmaker-skill.js",
