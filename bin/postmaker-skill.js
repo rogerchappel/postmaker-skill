@@ -20,6 +20,10 @@ try {
   pack = makeLaunchPack(readEvidence(file));
 } catch (error) {
   if (error instanceof EvidenceValidationError) fail(error.message);
+  if (error instanceof SyntaxError) fail(`Invalid JSON in evidence file: ${file}`);
+  if (error && typeof error === "object" && typeof error.code === "string") {
+    fail(`Unable to read evidence file: ${file} (${error.code})`);
+  }
   throw error;
 }
 
