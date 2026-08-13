@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Exercise the supported Node.js range through Node 24 in least-privilege CI
+  using maintained checkout and setup actions.
 - Return a non-zero CLI status after rendering when required project,
   audience, changes, or verification evidence is absent.
 - Treat only explicit passing verification results as publishable evidence.

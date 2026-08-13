@@ -4,6 +4,12 @@ Thanks for helping improve `postmaker-skill`.
 
 ## Development
 
+Development requires Node.js 18 or newer. Node 18 remains the supported legacy
+floor declared in `package.json`; CI runs the release checks on Node 18, 20, 22,
+and 24 so that the floor and each subsequent even-numbered release stay covered.
+When the supported range changes, update the package engine and CI matrix
+together.
+
 ```bash
 npm install
 npm run release:check
