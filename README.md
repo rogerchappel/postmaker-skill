@@ -41,6 +41,19 @@ then verification results, so callers can compare diagnostics deterministically.
 `normalizeEvidence` and `makeLaunchPack` remain strict and throw
 `EvidenceValidationError` for inputs outside the JSON contract.
 
+Import the validator from the package root:
+
+```js
+import { validateEvidence } from "postmaker-skill";
+
+const warnings = validateEvidence({
+  project: "Example",
+  audience: "maintainers",
+  changes: ["Added a package-root API"],
+  verification: [{ command: "npm test", result: "passed" }]
+});
+```
+
 ## Example
 
 ```sh
@@ -81,9 +94,9 @@ npm run release:check
 ```
 
 The gate runs syntax checks, fixture-backed tests, the maintained CLI smoke
-command, and a package smoke that verifies the tarball includes the CLI, source,
-skill instructions, fixture evidence, README, license, security policy,
-changelog, and contribution guide.
+command, and a package smoke that installs the packed tarball in an isolated
+consumer, imports `validateEvidence` from the package root, exercises the CLI,
+and verifies the expected package files.
 
 ## Limitations
 

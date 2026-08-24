@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "description": "Local-first agent skill for turning repository evidence into launch-ready posts.",
   "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
   "bin": {
     "postmaker-skill": "./bin/postmaker-skill.js"
   },
