@@ -106,12 +106,21 @@ and verifies the expected package files.
 
 ## Local Verification
 
-Run the committed test suite before opening a PR:
+Run the contributor checks before opening a PR. These commands are defined in
+`package.json` and cover dependency installation, source and CLI validation,
+tests, build syntax checks, the fixture-backed CLI smoke, and the packed-package
+consumer smoke:
 
 ```sh
+npm install
+npm run check
 npm test
+npm run build
+npm run smoke
+npm run package:smoke
 ```
 
-The fixture-backed suite covers valid and invalid direct-validation evidence,
-passing, failed, and malformed verification evidence, CLI argument handling,
-and missing-file and invalid-JSON diagnostics.
+For the equivalent complete release gate, run `npm run release:check`; it runs
+each validation step above. The fixture-backed suite covers valid and invalid
+direct-validation evidence, passing, failed, and malformed verification
+evidence, CLI argument handling, and missing-file and invalid-JSON diagnostics.
