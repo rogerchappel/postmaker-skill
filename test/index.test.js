@@ -28,6 +28,27 @@ test("generates launch, technical, and demo posts from evidence", () => {
   assert.deepEqual(pack.warnings, []);
 });
 
+test("malformed source entries warn deterministically and are omitted from launch packs", () => {
+  const input = {
+    project: "demo-skill",
+    audience: "release agents",
+    changes: ["writes launch copy"],
+    verification: [{ command: "npm test", result: "passed" }],
+    sources: [null, 42, "", { path: " " }, { path: "README.md", summary: 3 }, "docs/valid.md"]
+  };
+
+  assert.deepEqual(validateEvidence(input), [
+    "Malformed evidence: sources[0] must be a non-empty string or source object",
+    "Malformed evidence: sources[1] must be a non-empty string or source object",
+    "Malformed evidence: sources[2] must be a non-empty string or source object",
+    "Malformed evidence: sources[3].path must be a non-empty string",
+    "Malformed evidence: sources[4].summary must be a non-empty string when provided"
+  ]);
+  const pack = makeLaunchPack(input);
+  assert.deepEqual(pack.sources, ["docs/valid.md"]);
+  assert.deepEqual(pack.warnings, validateEvidence(input));
+});
+
 test("flags unsupported requested claims", () => {
   const warnings = validateEvidence({
     project: "demo-skill",

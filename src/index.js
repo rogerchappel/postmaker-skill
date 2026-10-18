@@ -13,25 +13,25 @@ export function readEvidence(filePath) {
   return normalizeEvidence(JSON.parse(raw));
 }
 
-export function normalizeEvidence(input) {
-  assertEvidenceShape(input);
+export function normalizeEvidence(input, { allowMalformedSources = false } = {}) {
+  assertEvidenceShape(input, { allowMalformedSources });
   const evidence = {
     project: input.project.trim(),
     audience: input.audience.trim(),
     changes: input.changes.map((change) => change.trim()),
     verification: input.verification.map((check, index) => normalizeVerification(check, index)),
     limitations: (input.limitations ?? []).map((limitation) => limitation.trim()),
-    sources: input.sources ?? [],
+    sources: (input.sources ?? []).filter(isValidSource),
     requestedClaims: (input.requestedClaims ?? []).map((claim) => claim.trim())
   };
 
   return {
     ...evidence,
-    warnings: validateEvidence(evidence)
+    warnings: validateEvidence({ ...input, sources: input.sources ?? [] })
   };
 }
 
-function assertEvidenceShape(input) {
+function assertEvidenceShape(input, { allowMalformedSources = false } = {}) {
   const diagnostics = [];
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     throw new EvidenceValidationError(["root must be a JSON object"]);
@@ -43,7 +43,7 @@ function assertEvidenceShape(input) {
   requireArray(input, "verification", diagnostics, { required: true });
   requireStringArray(input, "limitations", diagnostics);
   requireStringArray(input, "requestedClaims", diagnostics);
-  requireSources(input.sources, diagnostics);
+  if (!allowMalformedSources) requireSources(input.sources, diagnostics);
 
   if (diagnostics.length > 0) throw new EvidenceValidationError(diagnostics);
 }
@@ -72,6 +72,13 @@ function requireStringArray(input, field, diagnostics, options) {
       diagnostics.push(`${field}[${index}] must be a non-empty string`);
     }
   });
+}
+
+function isValidSource(source) {
+  if (typeof source === "string") return Boolean(source.trim());
+  return Boolean(source && typeof source === "object" && !Array.isArray(source) &&
+    typeof source.path === "string" && source.path.trim() &&
+    (source.summary === undefined || (typeof source.summary === "string" && source.summary.trim())));
 }
 
 function requireSources(sources, diagnostics) {
@@ -175,7 +182,7 @@ function collectionOrEmpty(input, field, warnings, { required = false } = {}) {
 }
 
 export function makeLaunchPack(input) {
-  const evidence = normalizeEvidence(input);
+  const evidence = normalizeEvidence(input, { allowMalformedSources: true });
   const keyChanges = evidence.changes.slice(0, 3);
   const checks = evidence.verification
     .filter((item) => item.status === "passed")
