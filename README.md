@@ -4,8 +4,10 @@
 
 ## Quickstart
 
+For a clean checkout, install the exact dependency versions recorded in the lockfile:
+
 ```sh
-npm install
+npm ci
 npm run smoke
 npm run release:check
 node bin/postmaker-skill.js fixtures/release-evidence.json --format json
@@ -109,10 +111,11 @@ and verifies the expected package files.
 Run the contributor checks before opening a PR. These commands are defined in
 `package.json` and cover dependency installation, source and CLI validation,
 tests, build syntax checks, the fixture-backed CLI smoke, and the packed-package
-consumer smoke:
+consumer smoke (use `npm ci` for reproducible installation from the lockfile; use
+`npm install` when intentionally updating dependencies):
 
 ```sh
-npm install
+npm ci
 npm run check
 npm test
 npm run build
