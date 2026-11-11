@@ -17,7 +17,8 @@
     "smoke": "node bin/postmaker-skill.js fixtures/release-evidence.json --format markdown",
     "package:smoke": "node scripts/package-smoke.js",
     "release:check": "npm run check && npm test && npm run build && npm run smoke && npm run package:smoke",
-    "lint": "npm run check"
+    "lint": "npm run check",
+    "ci:check": "npm run check && npm run build && npm run smoke && npm run package:smoke"
   },
   "keywords": [
     "agent-skill",
