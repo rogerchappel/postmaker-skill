@@ -2,6 +2,10 @@
 
 `postmaker-skill` is a local-first agent skill for turning repository evidence into launch-ready posts. It produces a short launch post, technical post, demo caption, follow-up checklist, limitations, source references, and warnings for unsupported claims.
 
+## Supported Node.js versions
+
+This project supports Node.js 20, 22, and 24. The package engine range is `>=20 <25`; CI runs the full test and check suite on each supported major.
+
 ## Quickstart
 
 For a clean checkout, install the exact dependency versions recorded in the lockfile:
