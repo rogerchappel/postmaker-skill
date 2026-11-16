@@ -37,7 +37,7 @@
   },
   "homepage": "https://github.com/rogerchappel/postmaker-skill#readme",
   "engines": {
-    "node": ">=18"
+    "node": ">=20 <25"
   },
   "files": [
     "bin/",
