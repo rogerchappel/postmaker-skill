@@ -23,3 +23,15 @@ test('package engine range, CI matrix, and README agree on supported Node majors
   assert.deepEqual(ciMajors, supported.filter((major) => ciMajors.includes(major)), 'CI majors must be within package engine range');
   assert.deepEqual([...new Set(documented)].sort((a, b) => a - b), ciMajors.slice().sort((a, b) => a - b));
 });
+
+test('the declared Node engine range rejects its exclusive upper bound', () => {
+  const engine = packageJson.engines.node;
+  const engineRange = engine.match(/^>=(\d+)\s+<([\d]+)$/);
+  assert.ok(engineRange, `expected a simple inclusive/exclusive Node range, got ${engine}`);
+  const exclusiveMaximum = Number(engineRange[2]);
+  const node25 = `${exclusiveMaximum}.0.0`;
+  const node25Major = Number(node25.split('.')[0]);
+  assert.ok(node25Major >= exclusiveMaximum, `Node ${node25} must be at or above the exclusive bound`);
+  assert.match(engine, new RegExp(`<${exclusiveMaximum}(?:\\s|$)`),
+    `expected ${engine} to exclude Node ${node25}`);
+});
