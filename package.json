@@ -11,6 +11,7 @@
     "postmaker-skill": "./bin/postmaker-skill.js"
   },
   "scripts": {
+    "check:engine-lock": "node scripts/check-engine-lock.js",
     "test": "node --test",
     "check": "node scripts/check.js",
     "build": "node scripts/check.js && node --check bin/postmaker-skill.js",
