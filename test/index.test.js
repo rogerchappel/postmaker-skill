@@ -62,6 +62,35 @@ test("flags unsupported requested claims", () => {
   assert.equal(warnings.includes("Unsupported requested claim: SOC2 certified"), true);
 });
 
+test("direct validation diagnoses malformed change entries without throwing", () => {
+  const evidence = {
+    project: "demo-skill",
+    audience: "release agents",
+    changes: [null, 42, { text: "not a string" }, ""],
+    verification: [{ command: "npm test", result: "passed" }]
+  };
+
+  assert.deepEqual(validateEvidence(evidence), [
+    "Malformed evidence: changes[0] must be a non-empty string",
+    "Malformed evidence: changes[1] must be a non-empty string",
+    "Malformed evidence: changes[2] must be a non-empty string",
+    "Malformed evidence: changes[3] must be a non-empty string"
+  ]);
+});
+
+test("direct validation diagnoses malformed verification entries without throwing", () => {
+  const evidence = {
+    project: "demo-skill",
+    audience: "release agents",
+    changes: ["writes launch copy"],
+    verification: [null, 42, "npm test", [], { command: "npm test", result: 42 }]
+  };
+
+  assert.deepEqual(validateEvidence(evidence), evidence.verification.map((_, index) =>
+    `Malformed verification record at index ${index}: command and result are required`
+  ));
+});
+
 test("validates raw verification records through the public API", () => {
   const warnings = validateEvidence({
     project: "demo-skill",
